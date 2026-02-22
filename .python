@@ -2,61 +2,118 @@ import json
 import os
 import hashlib
 
+VERSION = "1.1"
 USERS_FILE = "users.json"
+
+def clear():
+    os.system("cls" if os.name == "nt" else "clear")
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-# Load users
-if os.path.exists(USERS_FILE):
-    with open(USERS_FILE, "r") as f:
-        users = json.load(f)
-else:
-    users = {}
+def load_users():
+    if os.path.exists(USERS_FILE):
+        with open(USERS_FILE, "r") as f:
+            return json.load(f)
+    return {}
 
-print("=== Welcome to Kydra ===")
-choice = input("Login or Register? (l/r): ").lower()
-
-username = input("Username: ")
-password = input("Password: ")
-password_hash = hash_password(password)
-
-if choice == "r":
-    if username in users:
-        print("User already exists.")
-        exit()
-    users[username] = password_hash
+def save_users(users):
     with open(USERS_FILE, "w") as f:
         json.dump(users, f)
-    print("Registered!")
 
-elif choice == "l":
-    if username not in users or users[username] != password_hash:
-        print("Wrong username or password.")
-        exit()
-    print("Logged in!")
+def banner():
+    print("=" * 35)
+    print("        KYDRA v" + VERSION)
+    print("   Private Text Vault")
+    print("=" * 35)
 
-# User data file
-data_file = f"{username}_data.json"
+def login_system():
+    users = load_users()
+    choice = input("Login or Register? (l/r): ").lower()
+    username = input("Username: ")
+    password = input("Password: ")
+    password_hash = hash_password(password)
 
-if os.path.exists(data_file):
-    with open(data_file, "r") as f:
-        data = json.load(f)
-else:
-    data = {}
+    if choice == "r":
+        if username in users:
+            print("User already exists.")
+            return None
+        users[username] = password_hash
+        save_users(users)
+        print("Registered successfully.")
+        return username
 
-key = input("Enter keyword: ")
+    elif choice == "l":
+        if username not in users or users[username] != password_hash:
+            print("Wrong username or password.")
+            return None
+        print("Login successful.")
+        return username
 
-if key in data:
-    print("Current text:")
-    print(data[key])
-else:
-    print("No text yet for this keyword.")
+    else:
+        print("Invalid choice.")
+        return None
 
-new_text = input("Enter new text: ")
-data[key] = new_text
+def load_data(username):
+    filename = f"{username}_data.json"
+    if os.path.exists(filename):
+        with open(filename, "r") as f:
+            return json.load(f)
+    return {}
 
-with open(data_file, "w") as f:
-    json.dump(data, f)
+def save_data(username, data):
+    filename = f"{username}_data.json"
+    with open(filename, "w") as f:
+        json.dump(data, f)
 
-print("Saved!")
+def menu():
+    print("\n1) Open/Edit keyword")
+    print("2) Delete keyword")
+    print("3) Exit")
+
+def main():
+    clear()
+    banner()
+
+    user = login_system()
+    if not user:
+        input("Press Enter to exit...")
+        return
+
+    data = load_data(user)
+
+    while True:
+        menu()
+        choice = input("Choose an option: ")
+
+        if choice == "1":
+            key = input("Enter keyword: ")
+            if key in data:
+                print("Current text:")
+                print(data[key])
+            else:
+                print("No text yet for this keyword.")
+
+            new_text = input("Enter new text: ")
+            data[key] = new_text
+            save_data(user, data)
+            print("Saved.")
+
+        elif choice == "2":
+            key = input("Enter keyword to delete: ")
+            if key in data:
+                del data[key]
+                save_data(user, data)
+                print("Deleted.")
+            else:
+                print("Keyword not found.")
+
+        elif choice == "3":
+            print("Goodbye.")
+            break
+
+        else:
+            print("Invalid option.")
+
+if __name__ == "__main__":
+    main()
