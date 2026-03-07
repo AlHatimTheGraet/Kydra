@@ -1,0 +1,103 @@
+# ==============================
+# Kydra Writes
+# Open Source Edition
+# Contributed by Kydra Ltd
+# ==============================
+
+import tkinter as tk
+from tkinter import filedialog
+
+# ------------------------------
+# MAIN APPLICATION CLASS
+# This controls the entire app
+# ------------------------------
+
+class KydraWrites:
+
+    def __init__(self, root):
+
+        self.root = root
+        self.root.title("Kydra Writes")
+
+        # ---> Window size
+        self.root.geometry("900x600")
+
+        # ---> Main text editor
+        self.text_area = tk.Text(root, wrap="word", font=("Arial", 14))
+        self.text_area.pack(expand=True, fill="both")
+
+        # ---> Create the menu bar
+        self.create_menu()
+
+
+    # ------------------------------
+    # MENU SYSTEM
+    # Edit this section to add tools
+    # ------------------------------
+
+    def create_menu(self):
+
+        menu_bar = tk.Menu(self.root)
+
+        file_menu = tk.Menu(menu_bar, tearoff=0)
+
+        # ---> Creates a new document
+        file_menu.add_command(label="New", command=self.new_file)
+
+        # ---> Opens a saved file
+        file_menu.add_command(label="Open", command=self.open_file)
+
+        # ---> Saves the current document
+        file_menu.add_command(label="Save", command=self.save_file)
+
+        menu_bar.add_cascade(label="File", menu=file_menu)
+
+        # ---> Attach menu to window
+        self.root.config(menu=menu_bar)
+
+
+    # ------------------------------
+    # FILE FUNCTIONS
+    # These control file operations
+    # ------------------------------
+
+    def new_file(self):
+        # ---> Clears the editor
+        self.text_area.delete("1.0", tk.END)
+
+
+    def open_file(self):
+
+        # ---> File picker window
+        file_path = filedialog.askopenfilename()
+
+        if file_path:
+            with open(file_path, "r") as file:
+                content = file.read()
+
+            self.text_area.delete("1.0", tk.END)
+            self.text_area.insert(tk.END, content)
+
+
+    def save_file(self):
+
+        # ---> Save dialog
+        file_path = filedialog.asksaveasfilename(defaultextension=".txt")
+
+        if file_path:
+            with open(file_path, "w") as file:
+                text = self.text_area.get("1.0", tk.END)
+                file.write(text)
+
+
+# -----------------------------------------------------
+# PROGRAM START
+# This launches the application
+# Best not to touch it unless you know what your doing
+# -----------------------------------------------------
+
+if __name__ == "__main__":
+
+    root = tk.Tk()
+    app = KydraWrites(root)
+    root.mainloop()
